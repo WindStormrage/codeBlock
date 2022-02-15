@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>屏幕共享</title>
+  </head>
+
+  <body>
+    <div id="videos">
+      <div class="video-container">
+        <h2>本地捕获的屏幕共享流</h2>
+        <video id="srcVideo" playsinline controls muted loop class="srcVideo" />
+      </div>
+      <div class="video-container">
+        <h2>远端传输过来的屏幕共享流渲染</h2>
+        <video id="shareStreamVideo" playsinline autoplay muted class="shareStreamVideo" />
+      </div>
+    </div>
+    <script>
+      const srcVideo = document.getElementById('srcVideo');
+      const shareStreamVideo = document.getElementById('shareStreamVideo');
+
+      // 定义捕获流的参数
+      let displayMediaOptions = {
+        video: {
+          width: { max: 1280 },
+          height: { max: 720 },
+          frameRate: { ideal: 30 }
+        }
+      };
+      navigator.mediaDevices.getDisplayMedia(displayMediaOptions).then(stream => {
+        srcVideo.srcObject = stream;
+        srcVideo.play();
+        // 传输流, 建立PeerConnection
+        establishPC(shareStreamVideo, stream);
+      });
+
+      function establishPC(videoTag, stream) {
+        // 创建两个PeerConnection模拟两个客户端，pc1相当于本地，pc2相当于远端
+        const pc1 = new RTCPeerConnection(null);
+        const pc2 = new RTCPeerConnection(null);
+
+        // 交换 ICE 候选
+        // 可以理解为通知pc2连接pc1的地址
+        pc1.onicecandidate = e => {
+          console.log(e.candidate);
+          pc2.addIceCandidate(e.candidate);
+        };
+        // 可以理解为通知pc1接pc2地址
+        pc2.onicecandidate = e => {
+          pc1.addIceCandidate(e.candidate);
+        };
+
+        //  将需要传输的流添加给PeerConnection
+        stream.getTracks().forEach(track => pc1.addTrack(track, stream));
+
+        // 设置offer和answer，可理解为通知两边另一边的编解码等媒体信息
+        // 1.pc1创建offer
+        pc1.createOffer(displayMediaOptions)
+          .then(desc => {
+            console.log(desc);
+            // 2.pc1设置offer
+            pc1.setLocalDescription(desc)
+            // 3.pc2设置offer
+            pc2.setRemoteDescription(desc)
+            // 4.pc2创建answer
+            pc2.createAnswer()
+              .then(answerDesc => {
+                // 5.pc2设置answer
+                pc2.setLocalDescription(answerDesc)
+                // 6.pc1设置answer
+                pc1.setRemoteDescription(answerDesc)
+              })
+          })
+
+        //  远端接收到流，交给video去播放
+        pc2.ontrack = event => {
+          if (videoTag.srcObject !== event.streams[0]) {
+            videoTag.srcObject = event.streams[0];
+          }
+        };
+      }
+    </script>
+  </body>
+
+</html>

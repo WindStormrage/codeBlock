@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      canvas {
+        height: 500px;
+        width: 500px;
+        border: 1px solid red;
+      }
+    </style>
+	</head>
+	<body>
+		<input type="file" name="img" id="img" />
+    <img id="imgView" src="" />
+    <canvas id="myCanvas" height="1000" width="1000"></canvas>
+    <canvas id="sumCanvas" height="500" width="500"></canvas>
+    <canvas id="ballCanvas" height="500" width="500"></canvas>
+    <canvas id="imgCanvas" height="500" width="500"></canvas>
+
+
+
+    <svg version="1.1"
+      baseProfile="full"
+      width="400" height="400"
+      viewBox="0 0 400 400"
+      xmlns="http://www.w3.org/2000/svg"
+      id="svg">
+      <defs>
+        <style>
+          .svg-rect {
+            fill: rgb(47, 138, 138);
+          }
+        </style>
+        <linearGradient id='line1' x1="0" x2="0" y1="1" y2="0">
+          <stop offset="0%" stop-color="red"></stop>
+          <stop offset="100%" stop-color="green"></stop>
+        </linearGradient>
+        <radialGradient id='radia1' cx="0.75" cy="0.25" r="0.25" fx="0.8" fy="0.2" spreadMethod="repeat">
+          <stop offset="0%" stop-color="red"></stop>
+          <stop offset="100%" stop-color="green"></stop>
+        </radialGradient>
+        <pattern id="pattern1" x="0" y="0" width=".25" height=".25" patternContentUnits="objectBoundingBox">
+          <rect x="0" y="0" width=".24" height=".24" fill="orange"></rect>
+        </pattern>
+        <clipPath id="clip1">
+          <rect x="0" y="0" width="30" height="100"></rect>
+        </clipPath>
+        <linearGradient id="line2">
+          <stop offset="0" stop-color="#fff" stop-opacity="0"></stop>
+          <stop offset="1" stop-color="#fff" stop-opacity="1"></stop>
+        </linearGradient>
+        <mask id='mask1'>
+          <text x="50" y="325" fill="url(#line2)">xhy</text>
+          <!-- <rect x="50" y="300" width="50" height="50" fill="url(#line2)"></rect> -->
+        </mask>
+        <filter id="filter1">
+          <feGaussianBlur in="SourceAlfha" stdDeviation="5" result="blur"></feGaussianBlur>
+        </filter>
+      </defs>
+      <rect width="100%" height="100%" class="svg-rect"/>
+      <rect x="50" y="300" height="50" width="50" fill="yellow"></rect>
+      <rect x="50" y="300" height="50" width="50" fill="blue" mask="url(#mask1)"></rect>
+      <rect x="300" y="100" height="50" width="50" fill="green" filter="url(#filter1)" transform="translate(10, 10) rotate(45, 300, 100)"></rect>
+      <text x="300" y="50" fill="url(#line1)" text-anchor="middle" rotate="45" textLength="100">hello world</text>
+      <rect x="150" y="0" rx="20" ry="10" width="50" height="50" fill="url(#line1)" stroke-width="2" stroke="url(#line1)"></rect>
+      <rect x="150" y="80" width="100" height="100" fill="url(#pattern1)" transform="rotate(45, 200, 130)"></rect>
+      <circle cx="30" cy="30" r="20" fill="red" clip-path="url(#clip1)">
+        <animateMotion path="M 0 0 H 300 Z" dur="3s" repeatCount="indefinite"></animateMotion>
+      </circle>
+      <ellipse cx="75" cy="75" rx="20" ry="5" fill="orange">
+        <animate attributeName="ry" from="0" to="50" dur="3s" repeatCount="indefinite"></animate>
+      </ellipse>
+      <line x1="10" y1="20" x2="10" y2="50" stroke="green"></line>
+      <polyline points="100 100, 100 10, 50 50" stroke="blue" fill="url(#radia1)"></polyline>
+      <polygon points="200 10, 300 30, 200 25" stroke="blue" fill="yellow"></polygon>
+      <path id="path1" stroke="red" fill="green" d="
+        M 100 250 
+        l 25 25 
+        h 100 
+        v -100 
+        c -50 50, -100 50, -100 0 
+        s -50 -100, -100 0 
+        q 0 100, 50 50 
+        t 50 50
+        a 50 30, 20, 0, 1, 80 0
+      "></path>
+      <text>
+        <textPath xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#path1">->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->->-></textPath>
+      </text>
+      <image xmlns="ss" x="150" y="300" height="50" width="50" href="https://developer.mozilla.org/static/img/favicon144.png"></image>
+    </svg>
+    <script>
+      (() => {
+        const svg = document.getElementById('svg')
+        const img = document.createElementNS('http://www.w3.org/2000/svg', 'image')
+        img.setAttributeNS(null, 'height', '100')
+        img.setAttributeNS(null, 'width', '100')
+        img.setAttributeNS(null, 'href', 'https://developer.mozilla.org/static/img/favicon144.png');
+        img.setAttributeNS(null, 'x', '200')
+        img.setAttributeNS(null, 'y', '300')
+        svg.appendChild(img)
+
+  
+      })()
+    </script>
+
+
+
+		<script>
+			async function p(all, count, timeout) {
+			  return await doOnce()
+			  async function doOnce(params) {
+			    if (all.length === 0) {
+			      return []
+			    }
+			    const nowList = all.splice(0, count)
+			    const ans = await Promise.race([
+			      Promise.all(nowList),
+			      getTimeout(nowList.length)
+			    ])
+			    const next = await doOnce()
+			    return [...ans, ...next]
+			  }
+			  function getTimeout(length) {
+			    return new Promise((res, rej) => {
+			      setTimeout(() => {
+			        res(new Array(length).fill('timeout'))
+			      }, timeout);
+			    })
+			  }
+			}
+			console.log(p(
+			  [1,2,new Promise((res, rej) => {
+			      setTimeout(() => {
+			        res
+			      }, 100000);
+			    }),4,5,6],
+			  2,
+			  100
+			))
+		</script>
+		<script>
+      function promiseItem(item) {
+        return new Promise((res, rej) => {
+          res(item);
+        });
+      }
+			function p(all, count) {
+        let ansCount = 0
+        const allLength = all.length
+        const ans = [];
+        return new Promise((res, rej) => {
+          for (let i = 0; i < count; i++) {
+            let item = all.shift();
+            if (item !== undefined) {
+              addOnce(item, allLength - all.length - 1);
+            }
+          }
+          function addOnce(item, index) {
+            if (!(item instanceof Promise)) {
+              item = promiseItem(item);
+            }
+            item.then(data => {
+              ans[index] = data
+              console.log(ans);
+              ansCount++
+              if (ansCount === allLength) {
+                res(ans)
+              }
+              let item = all.shift();
+              if (item !== undefined) {
+                addOnce(item, allLength - all.length - 1);
+              }
+            })
+          }
+        })
+      }
+      p([
+          new Promise((res, rej) => {
+			      setTimeout(() => {
+			        res(1)
+			      }, 2000);
+          }),
+          2,
+          new Promise((res, rej) => {
+			      setTimeout(() => {
+			        res(3)
+			      }, 1000);
+          }),
+          new Promise((res, rej) => {
+			      setTimeout(() => {
+			        res(4)
+			      }, 3000);
+          }),
+          5,
+          6],
+			  2).then(data => {
+        console.log(data);
+      })
+    </script>
+		<script>
+      (() => {
+        const canvas = document.getElementById('myCanvas')
+        const ctx = canvas.getContext('2d')
+        // ctx.globalCompositeOperation = 'difference'
+        ctx.scale(2, 2)
+        const bg = new ImageData(200, 200)
+        for(let i = 0; i < bg.data.length; i++)
+          bg.data[i] = 20
+        console.log(bg);
+        ctx.putImageData(bg, 0, 0)
+
+        const bg2 = ctx.createImageData(100, 100)
+        for(let i = 0; i < bg2.data.length; i++)
+          bg2.data[i] = 20
+        console.log(bg2);
+        ctx.putImageData(bg2, 150, 150)
+  
+        // ctx.scale(2, 2)
+        // ctx.transform(1, 0, 0, 1, 0, 0)
+        // ctx.beginPath()
+        // ctx.moveTo(20, 20)
+        // ctx.lineTo(100, 20)
+        // ctx.lineTo(50, 40)
+        // ctx.clip()
+  
+        var rectangle = new Path2D();
+        rectangle.rect(10.5, 10.5, 50, 50);
+  
+        var circle = new Path2D();
+        circle.arc(100, 35, 25, 0, 2 * Math.PI);
+  
+        const linear = ctx.createLinearGradient(0, 0, 0, 50);
+        linear.addColorStop(0, 'red');
+        linear.addColorStop(1, 'black');
+          
+        ctx.setLineDash([1, 5, 1, 2])
+        ctx.lineDashOffset = 0
+        ctx.strokeStyle = linear
+        ctx.stroke(rectangle);
+        ctx.fill(circle);
+        ctx.lineWidth = 10
+        ctx.lineCap = 'round'
+        // ctx.lineJoin = 'round'
+        ctx.miterLimit = 1
+  
+        ctx.font = '48px serif'
+        ctx.fillText('xhy', 100, 100)
+        ctx.strokeText('xhy', 200, 100)
+        console.log(ctx.measureText('xhy'));
+  
+        ctx.save()
+        ctx.translate(200, 200)
+        ctx.beginPath()
+        ctx.arc(0, 0, 5, 0, 2*Math.PI)
+        ctx.fill()
+        for (let i = 1; i < 3; i++) {
+          for (let j = 0; j < 6 * i; j++) {
+            ctx.save()
+            ctx.beginPath()
+            ctx.rotate(2 * Math.PI / (6 * i) * j)
+            ctx.arc(0, i * 12, 5, 0, 2 * Math.PI)
+            ctx.fill()
+            ctx.restore()
+          }
+        }
+        ctx.restore()
+        ctx.beginPath()
+        ctx.arc(0, 0, 5, 0, 2*Math.PI)
+        ctx.fill()
+  
+        document.getElementById('img').addEventListener('input', () => {
+          console.log(document.getElementById('img').files[0]);
+          document.getElementById('imgView').src = URL.createObjectURL(
+            document.getElementById('img').files[0]
+          );
+          setCanvasImg()
+        });
+        function setCanvasImg() {
+          const img = new Image()
+          img.onload = function() {
+            console.log(this);
+            ctx.drawImage(img, 0, 0, 500, 500)
+            let imageData = ctx.getImageData(0,0,500,500)
+            console.log(imageData);
+            imageData = inverse(imageData)
+            ctx.putImageData(imageData, 0, 0, 0, 0, 500, 500)
+            console.log(canvas.toDataURL('image/jpeg', 0.1));
+            canvas.toBlob((data => {
+              console.log(data);
+              const url = URL.createObjectURL(data)
+              console.log(url);
+              const image = document.createElement('a')
+              image.setAttribute('href', url)
+              image.setAttribute('download', 'img')
+              console.log(image);
+              image.click()
+            }))
+          }
+          img.src = URL.createObjectURL(
+            document.getElementById('img').files[0]
+          );
+        }
+        // 灰度
+        function grey(data) {
+          for (let i = 0; i < data.data.length; i+=4) {
+            data.data[i] = data.data[i + 1] = data.data[i + 2] = data.data[i + 3] = (data.data[i] + data.data[i + 1] + data.data[i + 2] + data.data[i + 3]) / 4
+            // data.data[i] = data.data[i + 1] = data.data[i + 2] = data.data[i + 3] = data.data[i] * 0.299 + data.data[i + 1] * 0.587 + data.data[i + 2] * 0.114
+            data.data[i + 3] = 255
+          }
+          return data
+        }
+        // 反向
+        function inverse(data) {
+          for (let i = 0; i < data.data.length; i+=4) {
+            data.data[i] = 255 - data.data[i] 
+            data.data[i + 1] = 255 - data.data[i + 1] 
+            data.data[i + 2] = 255 - data.data[i + 2] 
+            data.data[i + 3] = 255
+          }
+          return data
+        }
+      })()
+		</script>
+    <script>
+      (() => {
+        const ctx = document.getElementById('sumCanvas').getContext('2d')
+        // const bg = new Image()
+        // const moon = new Image()
+        // const earth = new Image()
+        // bg.src = 'https://mdn.mozillademos.org/files/1456/Canvas_sun.png';
+        // moon.src = 'https://mdn.mozillademos.org/files/1443/Canvas_moon.png';
+        // earth.src = 'https://mdn.mozillademos.org/files/1429/Canvas_earth.png';
+        let earthRotate = 0
+        let moonRotate = 0
+        requestAnimationFrame(draw)
+        function draw() {
+          ctx.clearRect(0, 0, 500, 500)
+          // ctx.globalCompositeOperation = 'multiply'
+          // 太阳
+          // ctx.drawImage(bg, 0, 0, 500, 500)
+          ctx.save()
+          ctx.beginPath()
+          ctx.fillStyle = 'red'
+          ctx.arc(250, 250, 75, 0, 2 * Math.PI)
+          ctx.fill()
+          ctx.restore()
+
+
+          // 画轨道
+          ctx.save()
+          ctx.beginPath()
+          ctx.strokeStyle = 'green'
+          ctx.arc(250, 250, 150, 0, 2 * Math.PI)
+          ctx.stroke()
+          ctx.restore()
+
+          // 画地球
+          ctx.save()
+          ctx.translate(250, 250)
+          ctx.rotate(earthRotate)
+          earthRotate += 2 * Math.PI / 360 / 3
+          // ctx.drawImage(earth, 0, 150)
+          ctx.beginPath()
+          ctx.fillStyle = 'blue'
+          ctx.arc(0, 150, 12, 0, 2 * Math.PI)
+          ctx.fill()
+          // 画月球
+          ctx.save()
+          ctx.translate(0, 150)
+          ctx.rotate(moonRotate)
+          moonRotate += 2 * Math.PI / 360
+          ctx.beginPath()
+          ctx.fillStyle = 'yellow'
+          ctx.arc(0, 50, 10, 0, 2 * Math.PI)
+          ctx.fill()
+          ctx.restore()
+
+          ctx.restore()
+          
+          requestAnimationFrame(draw)
+        }
+      })()
+    </script>
+    <script>
+      (() => {
+        const ctx = document.getElementById('ballCanvas').getContext('2d')
+        const ball = {
+          x: 250,
+          y: 0,
+          vx: 10,
+          vy: 0,
+          ctx,
+          draw: function() {
+            ctx.save()
+            ctx.beginPath()
+            ctx.fillStyle = 'red'
+            ctx.arc(this.x, this.y, 10, 0, 2*Math.PI)
+            ctx.fill()
+            ctx.restore()
+          }
+        }
+        let date = new Date().getTime()
+        requestAnimationFrame(draw)
+        function draw(params) {
+          ctx.save()
+          // ctx.clearRect(0, 0, 500, 500)
+          ctx.fillStyle = 'rgba(255,255,255,0.1)';
+          ctx.fillRect(0,0,500,500);
+          ball.draw()
+          ball.x += ball.vx
+          ball.y += ball.vy
+          ball.vx *= .999;
+          ball.vy += 10 / 60;
+          if (ball.x > 500) {
+            ball.x = 500
+            ball.vx = -ball.vx * 0.999
+          }
+          if (ball.x < 0) {
+            ball.x = 0
+            ball.vx = -ball.vx * 0.999
+          }
+          if (ball.y > 500) {
+            ball.y = 500
+            ball.vy = -ball.vy * 0.8
+          }
+          if (ball.y < 0) {
+            ball.y = 0
+            ball.vy = -ball.vy * 0.8
+          }
+          ctx.restore()
+          const now = new Date().getTime()
+          // console.log((1000 / (now - date)).toFixed(0));
+          date = now
+          requestAnimationFrame(draw)
+        }
+        document.getElementById('ballCanvas').addEventListener('mousemove', function(e){
+          ball.x = e.offsetX;
+          ball.y = e.offsetY;
+        })
+      })()
+    </script>
+    <script>
+      (() => {
+        const canvas = document.getElementById('imgCanvas')
+        const ctx = canvas.getContext('2d')
+        ctx.save()
+        ctx.scale(2, 2)
+        ctx.fillRect(0, 0, 100, 100)
+        ctx.restore()
+        ctx.imageSmoothingEnabled = false
+        const img = new Image()
+        // img.src = 'https://miao.su/images/2018/10/03/WechatIMG13a5943.png'
+        // img.src = 'https://cdn.glitch.com/4c9ebeb9-8b9a-4adc-ad0a-238d9ae00bb5%2Fmdn_logo-only_color.svg'
+        img.src = 'https://static.yximgs.com/kos/nlav10524/api_upload/2021-05-12-20-54-25_7405645e-f9b3-410f-92cd-13ff59369bf5.png'
+        img.setAttribute('crossOrigin', 'anonymous')
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, 500, 500)
+          console.log(
+            canvas.toDataURL('image/jpeg', 0.1)
+          );
+        }
+        let beginX, beginY, endX, endY
+        canvas.addEventListener('mousedown', e => {
+          beginX = e.offsetX
+          beginY = e.offsetY
+        })
+        canvas.addEventListener('mouseup', e => {
+          endX = e.offsetX
+          endY = e.offsetY
+          const width = endX - beginX, height = endY - beginY
+          ctx.scale(500 / (endX - beginX), 500 / (endY - beginY))
+          // ctx.scale(2, 2)
+          const img = ctx.getImageData(beginX, beginY, width, height)
+
+          canvasImg = document.createElement('canvas')
+          canvasImg.setAttribute('height', height)
+          canvasImg.setAttribute('width', width)
+          const ctxImg = canvasImg.getContext('2d')
+          ctxImg.putImageData(img, 0, 0)
+
+          ctx.drawImage(canvasImg, 0, 0)
+        })
+      })()
+    </script>
+	</body>
+</html>

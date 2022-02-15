@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="bar"></div>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script>
+    const bar = d3.select('#bar')
+    bar.style('border', '1px solid red')
+       .append('svg')
+       .attr('height', '100px')
+       .attr('width', '100px')
+    const svg = bar.select('svg')
+    // svg.style('border', '1px solid green')
+
+    const x = d3.scaleLinear()
+                .range([0, 100])
+                .domain(0, 50)
+    const xAxis = svg.append('g')
+                     .style('transform', 'translateY(100px)')
+                     .call(d3.axisBottom(x))
+
+
+    // bar.append('div').attr('class', 'text')
+    // bar.append('div').attr('class', 'text')
+    // const data = ['aa', 'bb', 'cc', 'dd']
+    // bar.selectAll('.text').data(data).update().append('div').attr('class', 'text0')
+    // // bar.append('div')
+    // // bar.append('div')
+    // // bar.append('div')
+    // const p = bar.selectAll('div')
+
+    // p.data(data).text((item, index) => {
+    //   console.log(item, index);
+    //   return item
+    // })
+  </script>
+</body>
+</html>
